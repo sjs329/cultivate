@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auths Calculator</title>
+    <style>
+    form  { display: table;      }
+    p     { display: table-row;  }
+    label { display: table-cell; }
+    input { display: table-cell; }
+    .column { float: left; width: 33.33%; }
+    .row:after { content: ""; display: table; clear: both; } /* Clear floats after the columns */    
+    </style>
+</head>
+<body onload="setupEnterListeners()">
+    <h1>Enter the appropriate information in the fields, then click "Calculate":</h1>
+    <h3 id="status" style="color:red;"></h3>
+    <form>
+        <p>
+            <label for="cpt_code">CPT code:</label>
+            <input type="text" name="cpt_code" id="cpt_code">
+        </p>
+        <p>
+            <label for="units_per_auth">Units per Auth Period:</label>
+            <input type="number" name="units_per_auth" id="units_per_auth">
+        </p>
+        <p>OR</p>
+        <p>
+            <label for="hours_per_week">Hours per week:</label>
+            <input type="number" name="hours_per_week" id="hours_per_week">
+        </p>
+        <br><br>
+        <p>
+            <label for="weeks_per_auth">Weeks per Auth Period:</label>
+            <input type="number" name="weeks_per_auth" id="weeks_per_auth" value="26">
+        </p>
+        <br>
+        <p>
+            <label for="mins_per_unit">Minutes per unit:</label>
+            <input type="number" name="mins_per_unit" id="mins_per_unit" value="15">
+        </p>
+        <br>
+        <p>
+            <input type="button" onclick="calculate()" value="Calculate">
+        </p>
+
+        <!-- OUTPUTS -->
+        <br>
+        <p>
+            <label for="cpt_code_out">CPT code:</label>
+            <input type="text" name="cpt_code_out" id="cpt_code_out">
+        </p>
+        <p>
+            <label for="units_per_week">Units per week:</label>
+            <input type="text" id="units_per_week" name="units_per_week" readonly style="background-color: rgb(194, 194, 194);font-weight:bold;">
+        </p>
+        <p>
+            <label for="mins_per_auth">Minutes per Auth Period:</label>
+            <input type="text" id="mins_per_auth" name="mins_per_auth" readonly style="background-color: rgb(194, 194, 194);font-weight:bold;">
+        </p>
+        <p>
+            <label for="mins_per_week">Minutes per week:</label>
+            <input type="text" id="mins_per_week" name="mins_per_week" readonly style="background-color: rgb(194, 194, 194);font-weight:bold;">
+        </p>
+        <p>
+            <label for="units_per_auth_out">Units per Auth Period:</label>
+            <input type="number" name="units_per_auth_out" id="units_per_auth_out" readonly style="background-color: rgb(194, 194, 194);font-weight:bold;">
+        </p>
+        <p>
+            <label for="hours_per_week_out">Hours per week:</label>
+            <input type="number" name="hours_per_week_out" id="hours_per_week_out" readonly style="background-color: rgb(194, 194, 194);font-weight:bold;">
+        </p>
+    </form>
+    <script>
+        function addEnterListener(element) {
+            element.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {  
+                    calculate();
+                }
+            });
+        }
+
+        function setupEnterListeners() {
+            addEnterListener(document.getElementById("cpt_code"));
+            addEnterListener(document.getElementById("units_per_auth"));
+            addEnterListener(document.getElementById("hours_per_week"));
+            addEnterListener(document.getElementById("weeks_per_auth"));
+            addEnterListener(document.getElementById("mins_per_unit"));
+        }
+
+        function calculate() {
+            var units_per_auth = document.getElementById("units_per_auth").value;
+            var hours_per_week = document.getElementById("hours_per_week").value;        
+            var weeks_per_auth = document.getElementById("weeks_per_auth").value;        
+            var mins_per_unit = document.getElementById("mins_per_unit").value;
+
+            var units_not_empty = (units_per_auth != null && units_per_auth != "");
+            var hours_not_empty = (hours_per_week != null && hours_per_week != "");
+
+            // Catch error cases - note, this is terrible coding practice. We should do error handling somewhere else
+            if ((units_not_empty && hours_not_empty) || (!units_not_empty && !hours_not_empty)) {
+                document.getElementById("status").innerHTML = "You must enter either Units per Auth period OR Hours per week (not both)";
+            } else {
+                document.getElementById("status").innerHTML = "";
+
+                // do calculations
+                if (units_not_empty) {
+                    var units_per_week = units_per_auth / weeks_per_auth;
+                    document.getElementById("units_per_week").value = units_per_week;
+
+                    var mins_per_auth = mins_per_unit * units_per_auth;
+                    document.getElementById("mins_per_auth").value = mins_per_auth;
+                    
+                    var mins_per_week = mins_per_unit * units_per_week;
+                    document.getElementById("mins_per_week").value = mins_per_week;
+                    
+                    var hours_per_week_out = units_per_week * mins_per_unit / 60.0;
+                    document.getElementById("hours_per_week_out").value = hours_per_week_out;
+
+                    document.getElementById("units_per_auth_out").value = units_per_auth;
+                } else {
+                    var units_per_week = hours_per_week * 60.0 / mins_per_unit;
+                    document.getElementById("units_per_week").value = units_per_week;
+
+                    var mins_per_auth = hours_per_week * 60.0 * weeks_per_auth;
+                    document.getElementById("mins_per_auth").value = mins_per_auth;
+                    
+                    var mins_per_week = mins_per_unit * units_per_week;
+                    document.getElementById("mins_per_week").value = mins_per_week;
+                    
+                    document.getElementById("hours_per_week_out").value = hours_per_week;
+
+                    var units_per_auth_out = units_per_week * weeks_per_auth;
+                    document.getElementById("units_per_auth_out").value = units_per_auth_out;
+                }
+            }
+
+            document.getElementById("cpt_code_out").value = document.getElementById("cpt_code").value;
+        }
+    </script>
+</body>
+</html>
