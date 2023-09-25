@@ -26,6 +26,10 @@
                 <label for="cpt_code">CPT code:</label>
                 <input type="text" name="cpt_code" id="cpt_code">
             </p>
+            <br>
+            <p><b>
+                Fill in ONLY ONE of the fields below:
+            </b></p>
             <p>
                 <label for="units_per_auth">Units per Auth Period:</label>
                 <input type="number" name="units_per_auth" id="units_per_auth">
@@ -34,6 +38,11 @@
             <p>
                 <label for="hours_per_week">Hours per week:</label>
                 <input type="number" name="hours_per_week" id="hours_per_week">
+            </p>
+            <p>OR</p>
+            <p>
+                <label for="units_per_week_in">Units per week:</label>
+                <input type="number" name="units_per_week_in" id="units_per_week_in">
             </p>
             <br><br>
             <p>
@@ -57,8 +66,8 @@
                 <input type="text" name="cpt_code_out" id="cpt_code_out">
             </p>
             <p>
-                <label for="units_per_week">Units per week:</label>
-                <input type="text" id="units_per_week" name="units_per_week" readonly style="background-color: rgb(194, 194, 194);font-weight:bold;">
+                <label for="units_per_week_out">Units per week:</label>
+                <input type="text" id="units_per_week_out" name="units_per_week_out" readonly style="background-color: rgb(194, 194, 194);font-weight:bold;">
             </p>
             <p>
                 <label for="mins_per_auth">Minutes per Auth Period:</label>
@@ -133,22 +142,28 @@
         function calculate(num) {
             var units_per_auth = document.getElementById("units_per_auth_"+num).value;
             var hours_per_week = document.getElementById("hours_per_week_"+num).value;        
+            var units_per_week_in = document.getElementById("units_per_week_in_"+num).value;        
             var weeks_per_auth = document.getElementById("weeks_per_auth_"+num).value;        
             var mins_per_unit = document.getElementById("mins_per_unit_"+num).value;
 
-            var units_not_empty = (units_per_auth != null && units_per_auth != "");
-            var hours_not_empty = (hours_per_week != null && hours_per_week != "");
+            var units_per_auth_not_empty = (units_per_auth != null && units_per_auth != "");
+            var hours_per_wk_not_empty   = (hours_per_week != null && hours_per_week != "");
+            var units_per_wk_not_empty   = (units_per_week_in != null && units_per_week_in != "");
+            var num_populated = 0;
+            if (units_per_auth_not_empty) num_populated++;
+            if (hours_per_wk_not_empty) num_populated++;
+            if (units_per_wk_not_empty) num_populated++;
 
             // Catch error cases - note, this is terrible coding practice. We should do error handling somewhere else
-            if ((units_not_empty && hours_not_empty) || (!units_not_empty && !hours_not_empty)) {
-                document.getElementById("status").innerHTML = "You must enter either Units per Auth period OR Hours per week (not both)";
+            if (num_populated != 1) {
+                document.getElementById("status").innerHTML = "You must populate ONLY ONE field between Units per Auth period, Hours per week, and Units per week (not multiple)";
             } else {
                 document.getElementById("status").innerHTML = "";
 
                 // do calculations
-                if (units_not_empty) {
+                if (units_per_auth_not_empty) {
                     var units_per_week = units_per_auth / weeks_per_auth;
-                    document.getElementById("units_per_week_"+num).value = units_per_week;
+                    document.getElementById("units_per_week_out_"+num).value = units_per_week;
 
                     var mins_per_auth = mins_per_unit * units_per_auth;
                     document.getElementById("mins_per_auth_"+num).value = mins_per_auth;
@@ -160,9 +175,9 @@
                     document.getElementById("hours_per_week_out_"+num).value = hours_per_week_out;
 
                     document.getElementById("units_per_auth_out_"+num).value = units_per_auth;
-                } else {
+                } else if (hours_per_wk_not_empty) {
                     var units_per_week = hours_per_week * 60.0 / mins_per_unit;
-                    document.getElementById("units_per_week_"+num).value = units_per_week;
+                    document.getElementById("units_per_week_out_"+num).value = units_per_week;
 
                     var mins_per_auth = hours_per_week * 60.0 * weeks_per_auth;
                     document.getElementById("mins_per_auth_"+num).value = mins_per_auth;
@@ -173,6 +188,20 @@
                     document.getElementById("hours_per_week_out_"+num).value = hours_per_week;
 
                     var units_per_auth_out = units_per_week * weeks_per_auth;
+                    document.getElementById("units_per_auth_out_"+num).value = units_per_auth_out;
+                } else { // Units per week not empty
+                    document.getElementById("units_per_week_out_"+num).value = units_per_week_in;
+
+                    var hours_per_week_out = units_per_week_in * mins_per_unit / 60.0;
+                    document.getElementById("hours_per_week_out_"+num).value = hours_per_week_out;
+
+                    var mins_per_auth = hours_per_week_out * 60.0 * weeks_per_auth;
+                    document.getElementById("mins_per_auth_"+num).value = mins_per_auth;
+                    
+                    var mins_per_week = mins_per_unit * units_per_week_in;
+                    document.getElementById("mins_per_week_"+num).value = mins_per_week;
+                    
+                    var units_per_auth_out = units_per_week_in * weeks_per_auth;
                     document.getElementById("units_per_auth_out_"+num).value = units_per_auth_out;
                 }
             }
